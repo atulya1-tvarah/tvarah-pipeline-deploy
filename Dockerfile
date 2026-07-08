@@ -8,7 +8,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt requirements-ml.txt ./
-RUN pip install --no-cache-dir -r requirements.txt -r requirements-ml.txt \
+# CPU-only torch first -- Railway has no GPU, and the default PyPI torch wheel
+# drags in several GB of unused nvidia-cuda-* packages that just slow every
+# build/push/pull for no benefit here.
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir -r requirements.txt -r requirements-ml.txt \
     && pip install --no-cache-dir pdfplumber==0.11.10 pypdf==6.14.2 python-docx==1.1.2
 
 COPY . .
