@@ -1,8 +1,10 @@
 
 from __future__ import annotations
+import asyncio
 import json
 import logging
 import os
+from concurrent.futures import ThreadPoolExecutor
 from html import escape
 from pathlib import Path
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
@@ -23,6 +25,20 @@ from client_report_store import append_position_event, get_client_report, save_c
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("resume_intelligence.app")
+
+# uvicorn runs a single worker/event loop here -- analyze_resume() and the
+# PDF extraction step are synchronous CPU-bound calls that would otherwise
+# block that one loop for their entire ~70s+ duration, serializing every
+# resume parse in the system (across all recruiters) behind whichever one
+# started first. Running them in a bounded thread pool instead lets uvicorn
+# keep accepting/dispatching other requests, and PyTorch's C++ ops release
+# the GIL during their own computation so concurrent parses get real
+# parallelism, not just interleaving. Sized to 4 -- container has 8 vCPUs
+# and 8GB memory with ~2.6GB already used by loaded models at idle, and
+# torch is pinned to 1 thread per call (see bert_signal_engine.py), so 4
+# concurrent parses is comfortably within both budgets without needing to
+# guess at a higher number and risk OOM under real concurrent load.
+_PARSE_EXECUTOR = ThreadPoolExecutor(max_workers=4, thread_name_prefix="resume-parse")
 
 app = FastAPI(title="Resume Intelligence Engine")
 
@@ -1053,12 +1069,14 @@ def upload_page(user: dict = Depends(get_current_user)):
     }
     </script></div></div></body></html>''')
 
-@app.post("/resumeParse")
-async def parse_resume(file: UploadFile = File(...)):
+def _parse_resume_sync(content: bytes, fname: str) -> dict:
+    # Everything in here is synchronous and CPU/IO-bound (PDF extraction,
+    # the full analyze_resume pipeline, LLM calls, disk writes) -- this
+    # function is the unit that _PARSE_EXECUTOR runs off the event loop
+    # thread so concurrent /resumeParse requests don't serialize behind
+    # each other.
     import tempfile
     from pathlib import Path as _Path
-    fname = file.filename or "resume"
-    content = await file.read()
     suffix = _Path(fname).suffix.lower()
     if suffix in (".pdf", ".docx"):
         try:
@@ -1099,14 +1117,14 @@ async def parse_resume(file: UploadFile = File(...)):
     live_eval_path = save_live_analysis_report(
         analysis=result,
         payload=payload,
-        file_label=file.filename or "live_analysis.json",
+        file_label=fname or "live_analysis.json",
         runs_dir=EVAL_RUNS_DIR,
     )
     # Always derive candidate_id and save analysis
     overview = result.get("candidate_overview", {})
     _INVALID = {"n/a", "na", "none", "null", "unknown", "", "N/A", "NA"}
     def _cval(v): return v if v and str(v).strip() not in _INVALID and "/" not in str(v) else None
-    candidate_id = (_cval(overview.get("email")) or _cval(overview.get("name")) or _cval(file.filename) or "unknown").replace(" ", "_")
+    candidate_id = (_cval(overview.get("email")) or _cval(overview.get("name")) or _cval(fname) or "unknown").replace(" ", "_")
     candidate_name = overview.get("name", "")
     result["candidate_id"] = candidate_id
     result["_raw_resume"] = payload  # Saved for JD matching bridge
@@ -1127,12 +1145,20 @@ async def parse_resume(file: UploadFile = File(...)):
         logger.warning("Failed to save candidate analysis: %s", exc)
     logger.info(
         "Resume parse completed file=%s llm_used=%s provider=%s failure_reason=%s live_eval=%s",
-        file.filename,
+        fname,
         result.get("scorecard", {}).get("llm_used"),
         result.get("scorecard", {}).get("llm_provider"),
         result.get("scorecard", {}).get("llm_failure_reason"),
         live_eval_path,
     )
+    return result
+
+@app.post("/resumeParse")
+async def parse_resume(file: UploadFile = File(...)):
+    fname = file.filename or "resume"
+    content = await file.read()
+    loop = asyncio.get_running_loop()
+    result = await loop.run_in_executor(_PARSE_EXECUTOR, _parse_resume_sync, content, fname)
     return JSONResponse(content=result)
 
 @app.post("/generateInterviewQuestions")
