@@ -33,12 +33,14 @@ logger = logging.getLogger("resume_intelligence.app")
 # started first. Running them in a bounded thread pool instead lets uvicorn
 # keep accepting/dispatching other requests, and PyTorch's C++ ops release
 # the GIL during their own computation so concurrent parses get real
-# parallelism, not just interleaving. Sized to 4 -- container has 8 vCPUs
-# and 8GB memory with ~2.6GB already used by loaded models at idle, and
-# torch is pinned to 1 thread per call (see bert_signal_engine.py), so 4
-# concurrent parses is comfortably within both budgets without needing to
-# guess at a higher number and risk OOM under real concurrent load.
-_PARSE_EXECUTOR = ThreadPoolExecutor(max_workers=4, thread_name_prefix="resume-parse")
+# parallelism, not just interleaving. Bounded to 8 (matches the container's
+# 8 vCPU limit) rather than left unbounded -- this is a safety ceiling, not
+# a performance target: real load stays far below it in normal use (the
+# pool only spawns threads on demand), but it's what makes a surge (bug,
+# an unbounded bulk-upload fan-out, a traffic spike) degrade into a queue
+# instead of an OOM crash. Raise only after checking real memory headroom
+# under load via `railway metrics`, not by guessing.
+_PARSE_EXECUTOR = ThreadPoolExecutor(max_workers=8, thread_name_prefix="resume-parse")
 
 app = FastAPI(title="Resume Intelligence Engine")
 
