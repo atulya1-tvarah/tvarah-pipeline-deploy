@@ -87,7 +87,10 @@ def _seed_admin() -> None:
         logger.info("Upgraded %s to sales_head", rec_email)
 
 
-_seed_admin()
+try:
+    _seed_admin()
+except Exception as _sae:
+    logger.warning("Admin seed skipped: %s", _sae)
 
 
 # ---------------------------------------------------------------------------
