@@ -1,0 +1,62 @@
+{
+  "name": "Aditya Bikram",
+  "email": "aditya@example.com",
+  "phone": "+91-9999999999",
+  "location": "Gurugram, India",
+  "profile_summary": "Data scientist with experience in Python, SQL, PySpark, MLOps, and product analytics. Worked on model deployment, dashboards, and business impact analytics.",
+  "skills": [
+    "Python",
+    "SQL",
+    "PySpark",
+    "Docker",
+    "Kubernetes",
+    "MLflow",
+    "AWS",
+    "Power BI",
+    "XGBoost",
+    "Hypothesis Testing"
+  ],
+  "experience": [
+    {
+      "company": "Gartner",
+      "title": "Specialist - Quantitative Analysis & Data Science",
+      "start_date": "2024-08",
+      "end_date": "present",
+      "description": "Built Python-based analytics workflows, deployed predictive models, created Power BI dashboards, and automated reporting. Worked with product stakeholders, performed hypothesis testing, root cause analysis, and improved benchmark delivery speed by 70%. Implemented model tracking and scalable data pipelines.",
+      "skills": [
+        "Python",
+        "Power BI",
+        "Hypothesis Testing",
+        "SQL",
+        "MLflow"
+      ]
+    },
+    {
+      "company": "Project Experience",
+      "title": "Data Scientist / ML Engineer",
+      "start_date": "2023-01",
+      "end_date": "2024-06",
+      "description": "Developed PySpark ETL pipelines on AWS, optimized distributed jobs, built XGBoost models, and designed reusable feature engineering pipelines. Dockerized services and contributed to model deployment workflows with Kubernetes.",
+      "skills": [
+        "PySpark",
+        "AWS",
+        "Docker",
+        "Kubernetes",
+        "XGBoost",
+        "Feature Engineering"
+      ]
+    }
+  ],
+  "certifications": [
+    "IIT Madras Diploma in Data Science",
+    "IBM Data Science"
+  ],
+  "achievements": [
+    "Reduced reporting turnaround time by 70%",
+    "Built reusable analytics workflows"
+  ],
+  "extracurricular_activities": [
+    "Mentoring juniors",
+    "Hackathons"
+  ]
+}

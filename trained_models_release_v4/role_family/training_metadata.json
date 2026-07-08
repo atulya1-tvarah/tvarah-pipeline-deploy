@@ -1,0 +1,65 @@
+{
+  "task": "role_family",
+  "model_name": "answerdotai/ModernBERT-base",
+  "input_file": "training_data\\role_family.jsonl",
+  "train_examples": 800,
+  "validation_examples": 44,
+  "labels": {
+    "AI_ARCHITECT": 0,
+    "ANALYTICS_MANAGER": 1,
+    "APPLIED_SCIENTIST": 2,
+    "DATA_ANALYST": 3,
+    "DATA_ENGINEER": 4,
+    "GENAI_DATA_SCIENTIST": 5,
+    "NLP_LLM_ENGINEER": 6,
+    "PRODUCT_DATA_SCIENTIST": 7,
+    "RESEARCH_SCIENTIST": 8,
+    "RETAIL_ANALYTICS": 9
+  },
+  "metrics": {
+    "eval_loss": 1.1191909313201904,
+    "eval_accuracy": 0.6818181818181818,
+    "eval_macro_f1": 0.6486233766233765,
+    "eval_runtime": 17.9629,
+    "eval_samples_per_second": 2.449,
+    "eval_steps_per_second": 0.167,
+    "epoch": 3.0
+  },
+  "epochs": 3,
+  "learning_rate": 2e-05,
+  "batch_size": 16,
+  "max_length": 128,
+  "seed": 42,
+  "preset": "cpu_fast",
+  "rebalance": {
+    "applied": true,
+    "max_examples_per_label": 120,
+    "upsample_target_per_label": 80,
+    "original_counts": {
+      "GENAI_DATA_SCIENTIST": 40,
+      "NLP_LLM_ENGINEER": 6,
+      "AI_ARCHITECT": 49,
+      "DATA_ENGINEER": 19,
+      "APPLIED_SCIENTIST": 15,
+      "RETAIL_ANALYTICS": 6,
+      "PRODUCT_DATA_SCIENTIST": 18,
+      "DATA_ANALYST": 14,
+      "ANALYTICS_MANAGER": 6,
+      "RESEARCH_SCIENTIST": 6
+    },
+    "sampled_counts": {
+      "AI_ARCHITECT": 80,
+      "ANALYTICS_MANAGER": 80,
+      "APPLIED_SCIENTIST": 80,
+      "DATA_ANALYST": 80,
+      "DATA_ENGINEER": 80,
+      "GENAI_DATA_SCIENTIST": 80,
+      "NLP_LLM_ENGINEER": 80,
+      "PRODUCT_DATA_SCIENTIST": 80,
+      "RESEARCH_SCIENTIST": 80,
+      "RETAIL_ANALYTICS": 80
+    }
+  },
+  "collapse_skill_depth_labels": false,
+  "gold_overrides_applied": 0
+}

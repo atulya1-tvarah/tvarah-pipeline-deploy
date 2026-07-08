@@ -1,0 +1,44 @@
+{
+  "task": "skill_depth",
+  "model_name": "answerdotai/ModernBERT-base",
+  "input_file": "training_data\\skill_depth.jsonl",
+  "train_examples": 1700,
+  "validation_examples": 620,
+  "labels": {
+    "ADVANCED": 0,
+    "ARCHITECT_LEVEL": 1,
+    "HANDS_ON": 2
+  },
+  "metrics": {
+    "eval_loss": 0.4945038855075836,
+    "eval_accuracy": 0.7983870967741935,
+    "eval_macro_f1": 0.4278648617378225,
+    "eval_runtime": 288.3347,
+    "eval_samples_per_second": 2.15,
+    "eval_steps_per_second": 0.271,
+    "epoch": 2.0
+  },
+  "epochs": 2,
+  "learning_rate": 2e-05,
+  "batch_size": 8,
+  "max_length": 192,
+  "seed": 42,
+  "preset": "cpu_fast",
+  "rebalance": {
+    "applied": true,
+    "max_examples_per_label": 900,
+    "upsample_target_per_label": 400,
+    "original_counts": {
+      "HANDS_ON": 2366,
+      "ADVANCED": 85,
+      "ARCHITECT_LEVEL": 34
+    },
+    "sampled_counts": {
+      "ADVANCED": 400,
+      "ARCHITECT_LEVEL": 400,
+      "HANDS_ON": 900
+    }
+  },
+  "collapse_skill_depth_labels": true,
+  "gold_overrides_applied": 0
+}

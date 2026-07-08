@@ -1,0 +1,53 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+
+drive_resumes/
+extracted_json/
+extract_site/
+extract_venv/
+single_resume_input/
+single_resume_output/
+
+feedback_data/
+
+# Local training scratch/output
+training_exports*/
+trained_models/
+trained_models_v*/
+trained_models_fast_drive_imports/
+trained_models_balanced_fast_drive_imports/
+
+# Keep only the final release bundle
+!trained_models_release_2026_04_18/
+
+# Generated/temp files
+*.log
+analysis_snapshot.html
+analysis_snapshot_data.json
+eval_runs/
+
+# Runtime data directories
+candidate_analyses/
+candidate_scores/
+extracted_pdfs/
+extracted_pdfs_test/
+bulk_jobs/
+jd_matches/
+job_postings/
+sourced_profiles/
+sourcing_jobs/
+client_configs/
+client_reports/
+outputs/
+presentation_build/
+training_data/
+
+# Runtime files
+resume_intelligence.db
+recruiter_pipeline.json
+
+# Generated Excel/Word docs
+*.xlsx
+*.docx

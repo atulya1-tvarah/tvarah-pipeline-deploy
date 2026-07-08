@@ -1,0 +1,53 @@
+{
+  "task": "dna_fit",
+  "model_name": "answerdotai/ModernBERT-base",
+  "input_file": "training_data\\dna_fit.jsonl",
+  "train_examples": 720,
+  "validation_examples": 40,
+  "labels": {
+    "CONSULTING": 0,
+    "DOMAIN_SPECIALIST": 1,
+    "HYBRID": 2,
+    "PLATFORM_INFRA": 3,
+    "PRODUCT": 4,
+    "RESEARCH": 5
+  },
+  "metrics": {
+    "eval_loss": 0.9024999737739563,
+    "eval_accuracy": 0.725,
+    "eval_macro_f1": 0.7340640604067714,
+    "eval_runtime": 23.6375,
+    "eval_samples_per_second": 1.692,
+    "eval_steps_per_second": 0.212,
+    "epoch": 2.0
+  },
+  "epochs": 2,
+  "learning_rate": 2e-05,
+  "batch_size": 8,
+  "max_length": 256,
+  "seed": 42,
+  "preset": "cpu_fast",
+  "rebalance": {
+    "applied": true,
+    "max_examples_per_label": 180,
+    "upsample_target_per_label": 120,
+    "original_counts": {
+      "PLATFORM_INFRA": 31,
+      "CONSULTING": 57,
+      "DOMAIN_SPECIALIST": 17,
+      "PRODUCT": 46,
+      "RESEARCH": 8,
+      "HYBRID": 1
+    },
+    "sampled_counts": {
+      "CONSULTING": 120,
+      "DOMAIN_SPECIALIST": 120,
+      "HYBRID": 120,
+      "PLATFORM_INFRA": 120,
+      "PRODUCT": 120,
+      "RESEARCH": 120
+    }
+  },
+  "collapse_skill_depth_labels": false,
+  "gold_overrides_applied": 0
+}

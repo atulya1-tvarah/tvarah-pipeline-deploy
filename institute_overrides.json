@@ -1,0 +1,903 @@
+{
+  "psit kanpur": {
+    "canonical_name": "PSIT Kanpur",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Kanpur",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "jaypee university of engineering and technology": {
+    "canonical_name": "Jaypee University of Engineering and Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Guna",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "ymca university of science & technology": {
+    "canonical_name": "YMCA University of Science and Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Faridabad",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "grand columbus international school": {
+    "canonical_name": "Grand Columbus International School",
+    "tier": "UNKNOWN",
+    "country": "India",
+    "city": "Unknown",
+    "category": "UNKNOWN",
+    "streams": [],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "hec paris": {
+    "canonical_name": "HEC Paris",
+    "tier": "TIER_1",
+    "country": "France",
+    "city": "Jouy-en-Josas",
+    "category": "MBA_ELITE",
+    "streams": [
+      "Management"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "indian institute of technology  kharagpur": {
+    "canonical_name": "Indian Institute of Technology Kharagpur",
+    "tier": "TIER_1",
+    "country": "India",
+    "city": "Kharagpur",
+    "category": "ENGINEERING_ELITE",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil",
+      "Management",
+      "Science"
+    ],
+    "nirf_rank": 6,
+    "source": "llm_search"
+  },
+  "indian statistical institute": {
+    "canonical_name": "Indian Statistical Institute",
+    "tier": "TIER_1",
+    "country": "India",
+    "city": "Kolkata",
+    "category": "RESEARCH_ELITE",
+    "streams": [
+      "Science",
+      "Management"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "indian institute of technology kharagpur": {
+    "canonical_name": "Indian Institute of Technology Kharagpur",
+    "tier": "TIER_1",
+    "country": "India",
+    "city": "Kharagpur",
+    "category": "ENGINEERING_ELITE",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil",
+      "Science",
+      "Management"
+    ],
+    "nirf_rank": 5,
+    "source": "llm_search"
+  },
+  "college of technology  g b p u a&t": {
+    "canonical_name": "College of Technology, G.B. Pant University of Agriculture and Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Pantnagar",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "wbut": {
+    "canonical_name": "Maulana Abul Kalam Azad University of Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Kolkata",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "amrita vishwa vidyapeetham coimbatore": {
+    "canonical_name": "Amrita Vishwa Vidyapeetham",
+    "tier": "TIER_2",
+    "country": "India",
+    "city": "Coimbatore",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil",
+      "Management",
+      "Science"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "rajiv gandhi technical university  bhopal": {
+    "canonical_name": "Rajiv Gandhi Proudyogiki Vishwavidyalaya",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Bhopal",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "university of pune": {
+    "canonical_name": "Savitribai Phule Pune University",
+    "tier": "TIER_2",
+    "country": "India",
+    "city": "Pune",
+    "category": "GENERAL_STRONG",
+    "streams": [
+      "Science",
+      "Management",
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "ignou": {
+    "canonical_name": "Indira Gandhi National Open University",
+    "tier": "TIER_2",
+    "country": "India",
+    "city": "New Delhi",
+    "category": "GENERAL_STRONG",
+    "streams": [
+      "Science",
+      "Management"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "west bengal university of technology": {
+    "canonical_name": "Maulana Abul Kalam Azad University of Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Kolkata",
+    "category": "GENERAL_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil",
+      "Management",
+      "Science"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "n m a m institute of technology": {
+    "canonical_name": "N.M.A.M Institute of Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Karnataka",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "government college of engineering  amravati": {
+    "canonical_name": "Government College of Engineering, Amravati",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Amravati",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "jaypee institute of information technology": {
+    "canonical_name": "Jaypee Institute of Information Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Noida",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "chandigarh engineering college": {
+    "canonical_name": "Chandigarh Engineering College",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Chandigarh",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "bhartiya public school": {
+    "canonical_name": "Bhartiya Public School",
+    "tier": "UNKNOWN",
+    "country": "India",
+    "city": "UNKNOWN",
+    "category": "UNKNOWN",
+    "streams": [],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "army public school": {
+    "canonical_name": "Army Public School",
+    "tier": "TIER_4",
+    "country": "India",
+    "city": "Multiple cities",
+    "category": "GENERAL_PRIVATE",
+    "streams": [
+      "Science"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "mahatma gandhi missions college of engineering and technology": {
+    "canonical_name": "Mahatma Gandhi Missions College of Engineering and Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Navi Mumbai",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "fergusson college": {
+    "canonical_name": "Fergusson College",
+    "tier": "TIER_2",
+    "country": "India",
+    "city": "Pune",
+    "category": "GENERAL_STRONG",
+    "streams": [
+      "Science"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "east west institute of technology": {
+    "canonical_name": "East West Institute of Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Bangalore",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "maharaja sayajirao university": {
+    "canonical_name": "Maharaja Sayajirao University of Baroda",
+    "tier": "TIER_2",
+    "country": "India",
+    "city": "Vadodara",
+    "category": "GENERAL_STRONG",
+    "streams": [
+      "Science",
+      "Management",
+      "Civil",
+      "Mech",
+      "EEE"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "sastra deemed university": {
+    "canonical_name": "SASTRA Deemed University",
+    "tier": "TIER_2",
+    "country": "India",
+    "city": "Thanjavur",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil",
+      "Science",
+      "Management"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "doon business school": {
+    "canonical_name": "Doon Business School",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Dehradun",
+    "category": "MBA_STRONG",
+    "streams": [
+      "Management"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "vivekananda institute of technology": {
+    "canonical_name": "Vivekananda Institute of Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Bangalore",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "st  paul senior secondary school bhopal": {
+    "canonical_name": "St. Paul Senior Secondary School",
+    "tier": "UNKNOWN",
+    "country": "India",
+    "city": "Bhopal",
+    "category": "UNKNOWN",
+    "streams": [],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "sppu": {
+    "canonical_name": "Savitribai Phule Pune University",
+    "tier": "TIER_2",
+    "country": "India",
+    "city": "Pune",
+    "category": "GENERAL_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil",
+      "Management",
+      "Science"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "national institute of technology  rourkela": {
+    "canonical_name": "National Institute of Technology Rourkela",
+    "tier": "TIER_2",
+    "country": "India",
+    "city": "Rourkela",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil",
+      "Science"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "frankfurt university of applied sciences": {
+    "canonical_name": "Frankfurt University of Applied Sciences",
+    "tier": "TIER_3",
+    "country": "Germany",
+    "city": "Frankfurt",
+    "category": "GENERAL_STRONG",
+    "streams": [
+      "CS",
+      "Management",
+      "Science"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "makaut": {
+    "canonical_name": "Maulana Abul Kalam Azad University of Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Kolkata",
+    "category": "GENERAL_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil",
+      "Management",
+      "Science"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "wbchse": {
+    "canonical_name": "West Bengal Council of Higher Secondary Education",
+    "tier": "UNKNOWN",
+    "country": "India",
+    "city": "Kolkata",
+    "category": "UNKNOWN",
+    "streams": [
+      "Science"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "wbbse": {
+    "canonical_name": "West Bengal Board of Secondary Education",
+    "tier": "UNKNOWN",
+    "country": "India",
+    "city": "Kolkata",
+    "category": "UNKNOWN",
+    "streams": [],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "sir vishveshwaraiah institute of science & institute of technology": {
+    "canonical_name": "Sir M. Visvesvaraya Institute of Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Bengaluru",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "georgia institute of technology": {
+    "canonical_name": "Georgia Institute of Technology",
+    "tier": "TIER_1",
+    "country": "United States",
+    "city": "Atlanta",
+    "category": "ENGINEERING_ELITE",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil",
+      "Management",
+      "Science"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "institute of technical education and research  iter  bhubaneswar": {
+    "canonical_name": "Institute of Technical Education and Research",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Bhubaneswar",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "rajdhani junior college  bhubaneswar": {
+    "canonical_name": "Rajdhani Junior College",
+    "tier": "TIER_4",
+    "country": "India",
+    "city": "Bhubaneswar",
+    "category": "UNKNOWN",
+    "streams": [
+      "Science"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "st  joseph s high school  bhubaneswar": {
+    "canonical_name": "St. Joseph’s High School",
+    "tier": "TIER_4",
+    "country": "India",
+    "city": "Bhubaneswar",
+    "category": "UNKNOWN",
+    "streams": [],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "meerut institute of engineering and technology": {
+    "canonical_name": "Meerut Institute of Engineering and Technology",
+    "tier": "TIER_4",
+    "country": "India",
+    "city": "Meerut",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "agra college": {
+    "canonical_name": "Agra College",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Agra",
+    "category": "GENERAL_STRONG",
+    "streams": [
+      "Science",
+      "Management"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "tirumala engineering college": {
+    "canonical_name": "Tirumala Engineering College",
+    "tier": "TIER_4",
+    "country": "India",
+    "city": "Hyderabad",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "bharti vidyapeeth": {
+    "canonical_name": "Bharati Vidyapeeth",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Pune",
+    "category": "GENERAL_PRIVATE",
+    "streams": [
+      "Management",
+      "Science",
+      "Engineering"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "kl university": {
+    "canonical_name": "Koneru Lakshmaiah Education Foundation",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Vaddeswaram, Guntur",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil",
+      "Management",
+      "Science"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "bangalore university": {
+    "canonical_name": "Bangalore University",
+    "tier": "TIER_2",
+    "country": "India",
+    "city": "Bangalore",
+    "category": "GENERAL_STRONG",
+    "streams": [
+      "Science",
+      "Management"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "iet  davv indore": {
+    "canonical_name": "Institute of Engineering and Technology, Devi Ahilya Vishwavidyalaya",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Indore",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "college of engineering roorkee  utu": {
+    "canonical_name": "College of Engineering Roorkee",
+    "tier": "TIER_4",
+    "country": "India",
+    "city": "Roorkee",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "medi cap s institute of science and technology": {
+    "canonical_name": "Medi-Caps Institute of Science and Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Indore",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "university of essex": {
+    "canonical_name": "University of Essex",
+    "tier": "TIER_3",
+    "country": "United Kingdom",
+    "city": "Colchester",
+    "category": "GENERAL_STRONG",
+    "streams": [
+      "Science",
+      "Management"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "indian institute of information technology dharwad": {
+    "canonical_name": "Indian Institute of Information Technology Dharwad",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Dharwad",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "university of geneva": {
+    "canonical_name": "University of Geneva",
+    "tier": "TIER_1",
+    "country": "Switzerland",
+    "city": "Geneva",
+    "category": "GLOBAL_ELITE",
+    "streams": [
+      "Science",
+      "Management"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "poornima college of engineering": {
+    "canonical_name": "Poornima College of Engineering",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Jaipur",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "shailendra education society  tilak maharashtra vidyapeeth": {
+    "canonical_name": "Tilak Maharashtra Vidyapeeth",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Pune",
+    "category": "GENERAL_PRIVATE",
+    "streams": [
+      "Science",
+      "Management"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "aoc academy": {
+    "canonical_name": "AOC Academy",
+    "tier": "UNKNOWN",
+    "country": "India",
+    "city": "UNKNOWN",
+    "category": "UNKNOWN",
+    "streams": [],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "sai nath university  ranchi": {
+    "canonical_name": "Sai Nath University",
+    "tier": "TIER_4",
+    "country": "India",
+    "city": "Ranchi",
+    "category": "GENERAL_PRIVATE",
+    "streams": [
+      "Science",
+      "Management"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "university visvesvarya college of engineering": {
+    "canonical_name": "University Visvesvaraya College of Engineering",
+    "tier": "TIER_2",
+    "country": "India",
+    "city": "Bangalore",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "dr  virendra swarup education center  isc": {
+    "canonical_name": "Dr. Virendra Swarup Education Center (ISC)",
+    "tier": "TIER_4",
+    "country": "India",
+    "city": "Kanpur",
+    "category": "GENERAL_PRIVATE",
+    "streams": [
+      "Science",
+      "Management"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "greenfield public academy  indore": {
+    "canonical_name": "Greenfield Public Academy",
+    "tier": "TIER_4",
+    "country": "India",
+    "city": "Indore",
+    "category": "GENERAL_PRIVATE",
+    "streams": [],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "kendriya vidyalaya no 1  indore": {
+    "canonical_name": "Kendriya Vidyalaya No.1, Indore",
+    "tier": "UNKNOWN",
+    "country": "India",
+    "city": "Indore",
+    "category": "UNKNOWN",
+    "streams": [],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "dr  ambedkar institute of technology  bengaluru": {
+    "canonical_name": "Dr. Ambedkar Institute of Technology",
+    "tier": "TIER_3",
+    "country": "India",
+    "city": "Bengaluru",
+    "category": "ENGINEERING_STRONG",
+    "streams": [
+      "CS",
+      "ECE",
+      "EEE",
+      "Mech",
+      "Civil"
+    ],
+    "nirf_rank": null,
+    "source": "llm_search"
+  },
+  "impact polytechnic  bengaluru": {
+    "canonical_name": "Impact Polytechnic",
+    "tier": "TIER_4",
+    "country": "India",
+    "city": "Bengaluru",
+    "category": "UNKNOWN",
+    "streams": [],
+    "nirf_rank": null,
+    "source": "llm_search"
+  }
+}
