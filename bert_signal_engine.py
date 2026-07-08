@@ -5,6 +5,26 @@ from pathlib import Path
 from typing import Any
 
 _MODEL_CACHE: dict[str, tuple[Any, Any, Any]] = {}
+_TORCH_THREADS_CONFIGURED = False
+
+
+def _configure_torch_threads(torch_module) -> None:
+    # PyTorch defaults to spawning intra-op threads across every CPU core the
+    # container reports as visible. In a cgroup-throttled container (Railway
+    # advertises N vCPUs but schedules actual CPU time far below that under
+    # load) this causes severe thread contention -- coordination overhead
+    # swamps the work for a small classification forward pass, turning a
+    # sub-second inference into 30-40+ seconds. Measured live: single
+    # skill_depth predictions were taking ~38s each before this fix.
+    global _TORCH_THREADS_CONFIGURED
+    if _TORCH_THREADS_CONFIGURED:
+        return
+    try:
+        torch_module.set_num_threads(1)
+        torch_module.set_num_interop_threads(1)
+    except Exception:
+        pass
+    _TORCH_THREADS_CONFIGURED = True
 
 
 def _encoder_backend() -> str:
@@ -37,6 +57,7 @@ def _load_classifier(task: str) -> tuple[Any, Any, Any] | None:
         return None
     try:
         import torch
+        _configure_torch_threads(torch)
         from transformers import AutoModelForSequenceClassification, AutoTokenizer
     except Exception:
         _MODEL_CACHE[task] = None
