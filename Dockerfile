@@ -13,7 +13,8 @@ COPY requirements.txt requirements-ml.txt ./
 # build/push/pull for no benefit here.
 RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu \
     && pip install --no-cache-dir -r requirements.txt -r requirements-ml.txt \
-    && pip install --no-cache-dir pdfplumber==0.11.10 pypdf==6.14.2 python-docx==1.1.2
+    && pip install --no-cache-dir pdfplumber==0.11.10 pypdf==6.14.2 python-docx==1.1.2 \
+       bcrypt==5.0.0 psycopg2-binary==2.9.12 PyJWT==2.13.0
 
 COPY . .
 
