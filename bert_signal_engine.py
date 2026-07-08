@@ -151,15 +151,25 @@ def infer_bert_priors(
     experience: dict[str, Any],
     dna: dict[str, Any],
 ) -> dict[str, Any]:
+    import logging as _logging, time as _time
+    _diag = _logging.getLogger("resume_intelligence.diag")
     resume_text = _resume_text_for_classifier(overview, experience)
+    _t0 = _time.perf_counter()
     role_prior = _predict_text("role_family", resume_text)
+    _diag.info("DIAG: role_family predict done in %.2fs", _time.perf_counter() - _t0)
+    _t0 = _time.perf_counter()
     dna_prior = _predict_text("dna_fit", resume_text)
+    _diag.info("DIAG: dna_fit predict done in %.2fs", _time.perf_counter() - _t0)
     project_type_priors = []
     skill_depth_priors = []
-    for item in (normalized_resume.get("experience") or [])[:8]:
+    _exp_items = (normalized_resume.get("experience") or [])[:8]
+    _diag.info("DIAG: starting project_type loop, %s items", len(_exp_items))
+    for _i, item in enumerate(_exp_items):
         if not isinstance(item, dict):
             continue
+        _t0 = _time.perf_counter()
         prediction = _predict_text("project_type", _experience_text(item))
+        _diag.info("DIAG: project_type item %s predict done in %.2fs", _i, _time.perf_counter() - _t0)
         if prediction:
             project_type_priors.append(
                 {
@@ -170,7 +180,7 @@ def infer_bert_priors(
                     "candidates": prediction["candidates"],
                 }
             )
-    for skill in sorted(
+    _skill_items = sorted(
         [item for item in evidence_map.values() if item.get("evidence_level") != "NONE"],
         key=lambda item: (
             ["NONE", "MENTION", "WEAK", "APPLIED", "DEEP", "EXPERT"].index(item.get("evidence_level", "NONE")),
@@ -178,8 +188,12 @@ def infer_bert_priors(
             item.get("matched_context_count", 0),
         ),
         reverse=True,
-    )[:12]:
+    )[:12]
+    _diag.info("DIAG: starting skill_depth loop, %s items", len(_skill_items))
+    for _j, skill in enumerate(_skill_items):
+        _t0 = _time.perf_counter()
         prediction = _predict_text("skill_depth", _skill_text(skill))
+        _diag.info("DIAG: skill_depth item %s predict done in %.2fs", _j, _time.perf_counter() - _t0)
         if prediction:
             skill_depth_priors.append(
                 {

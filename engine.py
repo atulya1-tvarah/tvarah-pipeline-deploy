@@ -314,16 +314,24 @@ def _attach_skill_priors(top_skills: list[dict], bert_priors: dict[str, Any]) ->
     return updated
 
 def analyze_resume(resume_input):
+    import logging as _logging
+    _diag = _logging.getLogger("resume_intelligence.diag")
     reset_llm_telemetry()
     raw_resume_data = resume_input.data if hasattr(resume_input, "data") else resume_input
     resume_data = normalize_resume_data(raw_resume_data)
     overview = _candidate_overview(resume_data)
     evidence_map = collect_skill_evidence(resume_data)
+    _diag.info("DIAG: evidence collected")
     semantic = build_semantic_taxonomy(evidence_map, resume_data)
+    _diag.info("DIAG: semantic taxonomy built")
     experience = analyze_experience(resume_data)
+    _diag.info("DIAG: experience analyzed")
     education = analyze_education(resume_data)
+    _diag.info("DIAG: education analyzed")
     dna = classify_dna(resume_data, top_role_family=semantic.get("top_role_family", "UNKNOWN"))
+    _diag.info("DIAG: dna classified, entering infer_bert_priors")
     bert_priors = infer_bert_priors(overview, resume_data, evidence_map, semantic, experience, dna)
+    _diag.info("DIAG: bert_priors done")
     semantic = _merge_role_family_prior(semantic, bert_priors)
     experience = _merge_project_type_priors(experience, bert_priors)
     dna = _merge_dna_prior(dna, bert_priors)
@@ -331,8 +339,10 @@ def analyze_resume(resume_input):
     # ── Credibility computation (reverse-engineer expected skills vs claimed) ─
     _cred: dict[str, Any] = {}
     try:
+        _diag.info("DIAG: entering compute_experience_credibility")
         from experience_credibility import compute_experience_credibility
         _cred = compute_experience_credibility(experience, semantic, evidence_map)
+        _diag.info("DIAG: compute_experience_credibility done")
         experience = {**experience, "_credibility": _cred}
     except Exception as _cred_exc:
         import logging
@@ -342,16 +352,20 @@ def analyze_resume(resume_input):
 
     # ── LLM project judgment (deep reverse-engineering per project + candidate assessment) ──
     try:
+        _diag.info("DIAG: entering LLM project judgment block")
         from llm_experience_judge import judge_projects_llm
         from company_intelligence import enrich_company_context
         project_types = experience.get("project_types") or []
+        _diag.info("DIAG: project_types count=%s", len(project_types))
         if project_types:
             # Pre-build company intel for all unique companies
             _cmp_intel_map: dict[str, Any] = {}
             for _pt in project_types[:2]:
                 _cname = str(_pt.get("company") or "").strip()
                 if _cname and _cname not in _cmp_intel_map:
+                    _diag.info("DIAG: enriching company context for %s", _cname)
                     _cmp_intel_map[_cname] = enrich_company_context(_cname)
+            _diag.info("DIAG: company intel done, calling judge_projects_llm")
 
             _llm_project_result = judge_projects_llm(
                 project_items=project_types,
@@ -360,6 +374,7 @@ def analyze_resume(resume_input):
                 max_projects=2,
                 company_intel_map=_cmp_intel_map,
             )
+            _diag.info("DIAG: judge_projects_llm returned")
             if _llm_project_result:
                 experience = {**experience, "_llm_project_judgment": _llm_project_result}
     except Exception as _pj_exc:
