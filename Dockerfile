@@ -4,7 +4,7 @@ WORKDIR /app
 
 # System deps for torch/transformers wheels and PDF parsing
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+    build-essential curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt requirements-ml.txt ./
@@ -17,6 +17,17 @@ RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/wh
        bcrypt==5.0.0 psycopg2-binary==2.9.12 PyJWT==2.13.0
 
 COPY . .
+
+# Railway's automatic GitHub build fetches a repo snapshot rather than a full
+# LFS-aware git clone, so the *.safetensors files land here as tiny LFS
+# pointer stubs, not the real weights. Overwrite them with the actual content
+# from GitHub's LFS media endpoint (works unauthenticated since the repo is
+# public) -- this is the reliable path, independent of whatever checkout
+# mechanism the build platform uses.
+RUN for m in dna_fit role_family skill_depth; do \
+      curl -fL --retry 3 -o "trained_models_release_v4/${m}/model.safetensors" \
+        "https://media.githubusercontent.com/media/atulya1-tvarah/tvarah-pipeline-deploy/main/trained_models_release_v4/${m}/model.safetensors"; \
+    done
 
 ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
