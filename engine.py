@@ -85,7 +85,22 @@ def _normalize_experience_item(item):
         "title": first_non_empty(item.get("title"), item.get("role"), item.get("job_title")),
         "role": first_non_empty(item.get("role"), item.get("title"), item.get("job_title")),
         "start_date": first_non_empty(item.get("start_date"), item.get("from")),
-        "end_date": first_non_empty(item.get("end_date"), item.get("to"), item.get("duration_end"), "Present" if str(item.get("is_current_role", "")).lower() == "yes" else None),
+        # is_current_role is a structured boolean signal from the extractor
+        # and takes priority over a literal end_date string when it says
+        # "yes, ongoing" -- confirmed live that the extractor sometimes
+        # writes a end_date anyway for a role it also correctly marked
+        # is_current_role=True (e.g. reusing the start date as a bogus end
+        # date), and first_non_empty() would previously pick that wrong
+        # literal value since it's checked before is_current_role at all.
+        # Also fixes a dead comparison: this checked
+        # str(is_current_role).lower() == "yes", but the field is a JSON
+        # boolean (str(True).lower() == "true", never "yes"), so the
+        # fallback never actually fired even in the cases it was reached.
+        "end_date": (
+            "Present"
+            if item.get("is_current_role") in (True, "true", "True", "yes", "Yes", 1)
+            else first_non_empty(item.get("end_date"), item.get("to"), item.get("duration_end"))
+        ),
         "description": first_non_empty(item.get("description"), item.get("role_description"), item.get("experience_insights")),
         "skills": dedupe_keep_order(item.get("skills", [])),
         "location": first_non_empty(item.get("location"), item.get("company_location")),
