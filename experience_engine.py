@@ -238,30 +238,51 @@ def _compute_stability_score(tenures: list[int], titles: list[str]) -> float:
     return round(max(1.0, min(5.0, score)), 1)
 
 
-def _career_trajectory_score(titles: list[str]) -> int:
+def _score_sequence(seq: list[int]) -> int:
+    if len(seq) >= 3:
+        diffs = [seq[i + 1] - seq[i] for i in range(len(seq) - 1)]
+        if all(d >= 0 for d in diffs) and sum(d > 0 for d in diffs) >= 2:
+            return 5
+        if sum(d > 0 for d in diffs) >= 1 and sum(d < 0 for d in diffs) <= 1:
+            return 4
+    if seq[-1] > seq[0]:
+        return 3
+    if max(seq) - min(seq) <= 1:
+        return 2  # Flat
+    return 1  # Declining
+
+
+def _career_trajectory_score(titles: list[str], role_complexity: list[int] | None = None) -> int:
     """Score career trajectory 1-5 based on seniority progression.
     Resumes are typically reverse-chronological (newest first), so we also
     evaluate the reversed sequence to detect upward careers.
+
+    Title text alone misses genuine growth when someone's job title stays
+    the same across employers (e.g. "Data Scientist" throughout, a common
+    pattern for IC track hires) while the actual scope/complexity of their
+    work clearly escalates. role_complexity -- a per-role count of
+    COMPLEXITY_WORDS/PROBLEM_SOLVING_WORDS hits, same chronological order as
+    titles -- is used as a secondary signal: a title-flat sequence with a
+    clear complexity uptrend is upgraded from "Flat" rather than scored as
+    if nothing changed. This can only raise a flat/declining title-based
+    verdict, never lower a genuine title-based promotion -- conservative by
+    design, since title progression is still the stronger signal when it
+    exists.
     """
     if len(titles) < 2:
         return 3  # Not enough data
     levels = [_title_seniority(t) for t in titles]
-    # Try both chronological and reverse-chronological orderings
-    def _score_sequence(seq: list[int]) -> int:
-        if len(seq) >= 3:
-            diffs = [seq[i + 1] - seq[i] for i in range(len(seq) - 1)]
-            if all(d >= 0 for d in diffs) and sum(d > 0 for d in diffs) >= 2:
-                return 5
-            if sum(d > 0 for d in diffs) >= 1 and sum(d < 0 for d in diffs) <= 1:
-                return 4
-        if seq[-1] > seq[0]:
-            return 3
-        if max(seq) - min(seq) <= 1:
-            return 2  # Flat
-        return 1  # Declining
     fwd = _score_sequence(levels)
     rev = _score_sequence(list(reversed(levels)))
-    return max(fwd, rev)
+    title_score = max(fwd, rev)
+
+    if title_score == 2 and role_complexity and len(role_complexity) == len(titles) and len(role_complexity) >= 2:
+        c_fwd = _score_sequence(role_complexity)
+        c_rev = _score_sequence(list(reversed(role_complexity)))
+        if max(c_fwd, c_rev) >= 4:
+            return 3  # Title stayed flat, but scope/complexity clearly grew.
+
+    return title_score
 
 
 def analyze_experience(resume_data):
@@ -290,6 +311,7 @@ def analyze_experience(resume_data):
     previous_company = None
     previous_title = None
     same_company_growth = False
+    complexity_by_role: list[int] = []
 
     for item in items:
         title = normalize_text(item.get("title") or item.get("role"))
@@ -313,8 +335,10 @@ def analyze_experience(resume_data):
             leadership += 1
             ownership_signals += 1
             decision = True
+        role_complexity_count = sum(1 for w in COMPLEXITY_WORDS if w in ctx) + sum(1 for w in PROBLEM_SOLVING_WORDS if w in ctx)
         complexity += sum(1 for w in COMPLEXITY_WORDS if w in ctx)
         problem_solving += sum(1 for w in PROBLEM_SOLVING_WORDS if w in ctx)
+        complexity_by_role.append(role_complexity_count)
         impacts.extend(re.findall(IMPACT_PATTERN, ctx, flags=re.IGNORECASE))
         verbal_impacts.extend(re.findall(VERBAL_IMPACT_PATTERN, ctx, flags=re.IGNORECASE))
         project_type = _project_type(ctx)
@@ -361,7 +385,7 @@ def analyze_experience(resume_data):
     mobility = _location_bucket(locations, relocation_signal)
     loyalty = _loyalty_bucket([months for months in tenures if months > 0])
     stability = _compute_stability_score(tenures, titles)
-    trajectory = _career_trajectory_score(titles)
+    trajectory = _career_trajectory_score(titles, complexity_by_role)
     # Build tenure_with_dates for rubric_engine career break detection
     tenure_with_dates = []
     for item in items:

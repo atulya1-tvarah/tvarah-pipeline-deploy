@@ -55,6 +55,19 @@ def evaluate_integrity(resume_json: dict) -> Dict[str, object]:
             flags.append(f"Overlapping roles: {prev[2]} at {prev[3]} and {cur[2]} at {cur[3]}")
             score -= 8
 
+    # An entry with no end_date already defaults to "now" above (still
+    # ongoing), so this only fires for a genuine gap: the most recent job
+    # has an explicit past end date and nothing newer follows it -- the
+    # candidate is currently between jobs. Same >2-month threshold as the
+    # overlap check above, for consistency.
+    if spans_sorted:
+        latest_end = spans_sorted[-1][1]
+        gap_to_now = months_between(latest_end, now)
+        if gap_to_now > 2:
+            latest_title, latest_company = spans_sorted[-1][2], spans_sorted[-1][3]
+            flags.append(f"Candidate not currently employed: {latest_title} at {latest_company} ended ~{gap_to_now} months ago")
+            score -= 8
+
     phone = (((root.get("basic_info") or {}).get("contact_info") or {}).get("primary_phone_number") or "")
     if phone and len(''.join(ch for ch in phone if ch.isdigit())) < 10:
         flags.append("Phone number appears incomplete")

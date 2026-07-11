@@ -63,9 +63,20 @@ def parse_ym(s: Optional[str]) -> Optional[datetime]:
     if low in {"present", "current", "now", "till date", "ongoing"}:
         return datetime.now().replace(day=1)
 
+    # Was previously truncating `raw` to len(fmt.replace('%','')) chars
+    # before parsing -- that's the length of the format *template* (e.g.
+    # "%Y-%m" -> "Y-m" -> 3), not the expected length of an actual date
+    # string, so every "YYYY-MM" input got cut down to 3 characters (just
+    # the year's first 3 digits) and never matched any format here. It fell
+    # through to the bare-4-digit-year regex fallback below every time,
+    # silently returning January 1st of the right year regardless of the
+    # real month -- e.g. parse_ym("2023-09") returned 2023-01-01. This
+    # affected every date computation in this module (overlap detection,
+    # future-date checks). strptime already fails cleanly on a genuine
+    # mismatch, so there's no need to pre-truncate at all.
     for fmt in ("%Y-%m", "%Y-%b", "%Y-%B", "%b-%Y", "%B-%Y", "%m-%Y", "%Y"):
         try:
-            dt = datetime.strptime(raw[:len(fmt.replace('%',''))], fmt)
+            dt = datetime.strptime(raw, fmt)
             return dt.replace(day=1)
         except Exception:
             pass

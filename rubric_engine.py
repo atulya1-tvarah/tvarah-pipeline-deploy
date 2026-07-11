@@ -220,23 +220,35 @@ def _is_edu_overlap(
 
 
 def _detect_career_breaks(tenure_with_dates: list[dict[str, Any]], education_entries: list[dict[str, Any]] | None = None) -> dict[str, Any]:
-    """Count non-education gaps > 3 months between consecutive jobs.
+    """Count non-education gaps > 3 months between consecutive jobs, PLUS the
+    gap (if any) between the most recent job's end and today.
 
     E4: Gaps that overlap an education entry (≥50% overlap) are excluded from
         break_count and returned in edu_breaks — "educational gap, verified."
     E5: Gaps > 3m and ≤ 18m that are not educational are classified as
         possible_parental_breaks (soft flag, no score penalty).
 
+    A candidate whose most recent listed role already ended (an explicit
+    past end date, not "present"/ongoing) with no newer entry is currently
+    between jobs -- at least as decision-relevant as a gap between two past
+    jobs, but the original consecutive-pairs loop never reaches it since
+    there's no "next" entry to compare against. Reuses the exact same
+    thresholds/classification as inter-job gaps rather than introducing a
+    separate rule. An entry with no parseable end date already defaults to
+    "now" below (i.e. still ongoing), so this naturally produces a ~0-month
+    gap and never fires for genuinely current roles.
+
     Returns: break_count (hard breaks only), breaks, reject (True if > 2 hard
              breaks), edu_breaks (E4), possible_parental_breaks (E5).
     """
     _empty: dict[str, Any] = {
         "break_count": 0, "breaks": [], "reject": False,
-        "edu_breaks": [], "possible_parental_breaks": [],
+        "edu_breaks": [], "possible_parental_breaks": [], "overlaps": [],
     }
     if not tenure_with_dates:
         return _empty
 
+    now = datetime.now(timezone.utc)
     dated = []
     for entry in tenure_with_dates:
         start = _parse_ym(entry.get("start") or "")
@@ -244,10 +256,10 @@ def _detect_career_breaks(tenure_with_dates: list[dict[str, Any]], education_ent
         if start:
             dated.append({
                 "start": start,
-                "end": end or datetime.now(timezone.utc),
+                "end": end or now,
                 "company": entry.get("company", ""),
             })
-    if len(dated) < 2:
+    if not dated:
         return _empty
 
     dated.sort(key=lambda x: x["start"])
@@ -263,39 +275,74 @@ def _detect_career_breaks(tenure_with_dates: list[dict[str, Any]], education_ent
             e.get("education_end_date") or e.get("passing_year") or ""
         )
         if e_start:
-            edu_periods.append((e_start, e_end or datetime.now(timezone.utc)))
+            edu_periods.append((e_start, e_end or now))
 
     breaks: list[dict[str, Any]] = []
     edu_breaks: list[dict[str, Any]] = []
     possible_parental_breaks: list[dict[str, Any]] = []
 
-    for i in range(len(dated) - 1):
-        gap_start = dated[i]["end"]
-        gap_end = dated[i + 1]["start"]
+    def _classify_gap(gap_start: datetime, gap_end: datetime, after_company: str, before_company: str) -> None:
         gap_months = _month_diff_dt(gap_start, gap_end)
         if gap_months <= 3:
-            continue
-
+            return
         entry_dict: dict[str, Any] = {
-            "after_company": dated[i]["company"],
-            "before_company": dated[i + 1]["company"],
+            "after_company": after_company,
+            "before_company": before_company,
             "gap_months": round(gap_months, 1),
             "gap_start": gap_start.strftime("%Y-%m"),
             "gap_end": gap_end.strftime("%Y-%m"),
         }
-
         # E4: Gap overlaps education → educational break, exclude from penalty
         if edu_periods and _is_edu_overlap(gap_start, gap_end, edu_periods):
             edu_breaks.append({**entry_dict, "reason": "educational"})
-            continue
-
+            return
         # E5: Short gap (> 3m and ≤ 18m) → possible parental/personal — soft flag, no score penalty
         if gap_months <= 18:
             possible_parental_breaks.append({**entry_dict, "reason": "possible_parental"})
-            continue
-
+            return
         # Hard break: gap > 18m, not educational
         breaks.append(entry_dict)
+
+    for i in range(len(dated) - 1):
+        _classify_gap(dated[i]["end"], dated[i + 1]["start"], dated[i]["company"], dated[i + 1]["company"])
+
+    # Gap between the most recent job's end and today.
+    latest = dated[-1]
+    _classify_gap(latest["end"], now, latest["company"], "present day (not yet re-employed)")
+
+    # Overlapping employment -- two roles active at the same time. An exact
+    # duplicate (same company, byte-identical start AND end dates listed as
+    # if they were two separate roles/projects) is a much stronger padding
+    # signal than an ordinary few-week handoff overlap between two different
+    # employers, so it's folded into the same `breaks` bucket (counts toward
+    # break_count/reject) rather than only being a soft note. This mirrors
+    # jd_matching/integrity.py's overlap check, which this rubric-scoring
+    # path previously had no equivalent of at all.
+    overlaps: list[dict[str, Any]] = []
+    for i in range(len(dated)):
+        for j in range(i + 1, len(dated)):
+            a, b = dated[i], dated[j]
+            if a["start"] >= b["end"] or b["start"] >= a["end"]:
+                continue
+            overlap_months = _month_diff_dt(max(a["start"], b["start"]), min(a["end"], b["end"]))
+            if overlap_months <= 2:
+                continue
+            is_duplicate = (
+                a["company"].strip().lower() == b["company"].strip().lower()
+                and a["start"] == b["start"] and a["end"] == b["end"]
+            )
+            overlap_entry = {
+                "company_a": a["company"], "company_b": b["company"],
+                "overlap_months": round(overlap_months, 1), "duplicate": is_duplicate,
+            }
+            overlaps.append(overlap_entry)
+            if is_duplicate:
+                breaks.append({
+                    "after_company": a["company"], "before_company": b["company"],
+                    "gap_months": round(overlap_months, 1),
+                    "gap_start": a["start"].strftime("%Y-%m"), "gap_end": a["end"].strftime("%Y-%m"),
+                    "reason": "duplicate_employment_entry",
+                })
 
     break_count = len(breaks)
     return {
@@ -304,6 +351,7 @@ def _detect_career_breaks(tenure_with_dates: list[dict[str, Any]], education_ent
         "reject": break_count > 2,
         "edu_breaks": edu_breaks,
         "possible_parental_breaks": possible_parental_breaks,
+        "overlaps": overlaps,
     }
 
 
@@ -892,6 +940,9 @@ def _score_experience_section(
     breaks_list = break_info.get("breaks") or []
     edu_breaks_list = break_info.get("edu_breaks") or []
     parental_breaks_list = break_info.get("possible_parental_breaks") or []
+    overlaps_list = break_info.get("overlaps") or []
+    duplicate_overlaps = [o for o in overlaps_list if o.get("duplicate")]
+    transition_overlaps = [o for o in overlaps_list if not o.get("duplicate")]
 
     # Build context note for E4/E5 events
     _break_context_note = ""
@@ -901,6 +952,16 @@ def _score_experience_section(
         _break_context_note += (
             f" [{len(parental_breaks_list)} possible parental/personal break(s) ≤18m — "
             f"E5: soft flag only, no score penalty. Recruiter to verify.]"
+        )
+    if duplicate_overlaps:
+        _break_context_note += (
+            f" [{len(duplicate_overlaps)} duplicate employment entr{'y' if len(duplicate_overlaps) == 1 else 'ies'} "
+            f"detected (same company, identical dates listed as separate roles) — counted as hard break(s).]"
+        )
+    if transition_overlaps:
+        _break_context_note += (
+            f" [{len(transition_overlaps)} overlapping employment period(s) detected between different employers — "
+            f"soft flag only, no score penalty. Recruiter to verify.]"
         )
 
     if break_info["reject"]:
@@ -928,6 +989,7 @@ def _score_experience_section(
         breaks_pts, 2, reason,
         break_count=n_breaks, breaks=breaks_list,
         edu_breaks=edu_breaks_list, possible_parental_breaks=parental_breaks_list,
+        overlaps=overlaps_list,
     )
 
     # ── 3. Career progression (4 pts) ─────────────────────────────────────
@@ -1541,6 +1603,7 @@ def _score_skills_section(
 def _score_education_section(education: dict[str, Any]) -> dict[str, Any]:
     """Map education_engine output to a 15-point rubric sub-section (10 core + 5 bonus)."""
     bd: dict[str, Any] = {}
+    reject_flags: list[str] = []
     entries = education.get("education_entries") or []
 
     # ── Core params (10 pts total) ────────────────────────────────────────
@@ -1702,6 +1765,11 @@ def _score_education_section(education: dict[str, Any]) -> dict[str, Any]:
     else:
         gap_pts = 0.0
         reason = f"Large education-to-employment gap of {gap_months}m detected. May indicate difficulty entering workforce."
+        # Documented in SCORING_DOCUMENTATION.md ("Gap >12m also triggers
+        # REJECT FLAG") but this section previously had no reject_flags list
+        # at all to append to -- compute_rubric_score's final reject_flags
+        # only ever pulled from the experience section's own list.
+        reject_flags.append(f"education_gap={gap_months}m — gap between education and first job exceeds 12 months")
     bd["education_gap"] = _param(gap_pts, 1, reason,
                                   gap_months=gap_months, gap_flag=gap_flag)
 
@@ -1768,6 +1836,7 @@ def _score_education_section(education: dict[str, Any]) -> dict[str, Any]:
         "education_bonus_score": round(bonus_total, 2),
         "education_display_max": edu_display_max,
         "breakdown": bd,
+        "reject_flags": reject_flags,
     }
 
 
@@ -2503,7 +2572,7 @@ def compute_rubric_score(
             "education": edu_result["breakdown"],
         },
         "credibility_check": _cred_check,   # reverse-engineering report — metadata only
-        "reject_flags": exp_result["reject_flags"],
+        "reject_flags": exp_result["reject_flags"] + edu_result.get("reject_flags", []),
         "max_scores": {"experience": 40, "skills": 45, "education": 15, "total": 100},
         "stage_scores": stage_scores,
         # ── Archetype + dynamic weights ────────────────────────────────────
