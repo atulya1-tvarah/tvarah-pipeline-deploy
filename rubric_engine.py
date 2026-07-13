@@ -56,6 +56,22 @@ from typing import Any
 
 from company_tier_taxonomy import classify_company_tier, tier_to_points
 
+# Extraction consistently formats staffing arrangements as "{ClientName}
+# (Client) - {StaffingFirm}" (e.g. "Microsoft (Client) - Wipro"). Every
+# consumer of a raw company/employer string in this file needs to resolve
+# to the STAFFING FIRM, not the client -- the client name alone doesn't
+# reflect who the candidate actually worked for, and was silently giving
+# full FAANG/Tier-1 credit (and tripping the "all-Tier-1 = industry-normal
+# job-hopping" edge case) for candidates staffed through a consulting firm.
+_CLIENT_STAFFING_PATTERN = re.compile(r"^\s*.+?\(client\)\s*-\s*(.+?)\s*$", re.IGNORECASE)
+
+
+def _real_employer_name(company: object) -> str:
+    company_str = str(company or "")
+    match = _CLIENT_STAFFING_PATTERN.match(company_str)
+    return match.group(1) if match else company_str
+
+
 # ---------------------------------------------------------------------------
 # BERT depth → numeric score mapping (primary accuracy engine)
 # ---------------------------------------------------------------------------
@@ -80,8 +96,10 @@ EVIDENCE_LEVEL_TO_SCORE: dict[str, float] = {
 # Archetype Detection & Dynamic Weight Reallocation
 # ---------------------------------------------------------------------------
 
-# Default section maxes — denominators for normalising before dynamic reallocation
-_BASE_MAXES: dict[str, float] = {"edu": 15.0, "exp": 40.0, "skills": 45.0}
+# Default section maxes — denominators for normalising before dynamic reallocation.
+# skills=29 matches the resume-stage-achievable ceiling (see _SKILLS_ITEM_TARGET_MAX
+# below) -- the full 45 only becomes reachable once panel-stage items are filled in.
+_BASE_MAXES: dict[str, float] = {"edu": 15.0, "exp": 40.0, "skills": 29.0}
 
 # Archetype weight table — each row sums to 100
 # Archetype coding follows EDGE_CASES_AND_RED_FLAGS.md Section 1
@@ -381,7 +399,7 @@ def detect_archetype(experience: dict[str, Any], education: dict[str, Any]) -> s
     # Best company tier across all employers
     best_tier = 5
     for c in companies:
-        t = classify_company_tier(str(c or ""), llm_fallback=False)
+        t = classify_company_tier(_real_employer_name(c), llm_fallback=False)
         if t < best_tier:
             best_tier = t
 
@@ -864,6 +882,58 @@ def _score_project_with_llm(
 
 
 # ---------------------------------------------------------------------------
+# Section-score rescaling — fixes a real bug: several items are coded with a
+# larger raw `max` than their documented weight (e.g. skill_list_years is
+# scored 0-20 raw but its own comment says "Panel may re-validate and cap to
+# 6 pts in the final score" -- that cap-down to 6 was never actually applied
+# before summing into skills_score). Section scores were computed as
+# `clamp(raw_sum, 0, section_target)` -- a no-op ceiling clip, not the
+# proportional rescale the module's own docstring describes ("TOTAL 47 ->
+# normalised to 40 at stage"). Net effect measured empirically across 8 real
+# resumes: total_score ran ~10-14 points higher than a true 0-100 read would
+# justify, and -- because the inflation wasn't uniform across candidates
+# (it's driven by how much of the raw score sits in over-weighted items like
+# skill_list_years, which mechanically favors more years of experience) -- it
+# was actively inverting rankings between candidates.
+#
+# Fix: rescale each item's (score / its own coded max) ratio against its
+# TRUE documented target weight, then sum and clamp to the section's
+# resume-stage-achievable total (not the full post-panel total -- panel/
+# recruiter-only items genuinely aren't scoreable yet, matching the
+# "pending != 0" rule already used elsewhere in this pipeline).
+# ---------------------------------------------------------------------------
+
+# Experience: matches documented per-item weights exactly except it
+# deliberately excludes stakeholder_management(2)/mentorship_signal(3) --
+# recruiter-only, always 0 at resume stage (E16's international_exposure
+# stays included; it's auto-scored from resume despite being tagged
+# "recruiter" in STAGE_MAP -- see that field's own comment).
+_EXP_ITEM_TARGET_MAX: dict[str, float] = {
+    "overall_experience": 4, "career_breaks": 2, "career_progression": 4,
+    "stability": 4, "company_tier": 6, "awards_recognition": 4,
+    "international_exposure": 2, "project_1": 10, "project_2": 6,
+}  # sums to 42 -- resume-achievable subset of the 47-pt raw design
+
+# Skills: the real fix -- these 6 items are coded with an inflated raw max
+# (49 pts total) versus their documented weight (29 pts total); the other
+# 16 pts (communication_skills/domain_skills/problem_solving/
+# project_explanation) are recruiter/panel-only and excluded entirely.
+_SKILLS_ITEM_TARGET_MAX: dict[str, float] = {
+    "skill_list_years": 6, "skill_depth": 8, "skill_recency": 6,
+    "skills_learning_acumen": 3, "certifications": 3, "coding_community": 3,
+}  # sums to 29 -- resume-achievable subset of the 45-pt design
+
+
+def _rescaled_section_score(bd: dict, item_target_max: dict[str, float], section_ceiling: float) -> float:
+    total = 0.0
+    for key, target_max in item_target_max.items():
+        item = bd.get(key)
+        if isinstance(item, dict) and isinstance(item.get("score"), (int, float)) and item.get("max"):
+            total += (item["score"] / item["max"]) * target_max
+    return round(_clamp(total, 0, section_ceiling), 1)
+
+
+# ---------------------------------------------------------------------------
 # EXPERIENCE section — 44 pts (normalised to 40)
 # ---------------------------------------------------------------------------
 
@@ -882,7 +952,7 @@ def _score_experience_section(
     _twd_all: list[dict[str, Any]] = experience.get("tenure_with_dates") or []
     _twd_companies = [str(e.get("company") or "") for e in _twd_all if e.get("company")]
     _pretier_map: dict[str, int] = {
-        c: classify_company_tier(c, llm_fallback=False) for c in _twd_companies if c
+        c: classify_company_tier(_real_employer_name(c), llm_fallback=False) for c in _twd_companies if c
     }
 
     # ── 1. Overall / Relevant experience (4 pts) ──────────────────────────
@@ -1093,7 +1163,7 @@ def _score_experience_section(
         _startup_exits = 0
         for _j in range(len(_sorted_twd2) - 1):
             _coy = str(_sorted_twd2[_j].get("company") or "")
-            _coy_tier = _pretier_map.get(_coy, classify_company_tier(_coy, llm_fallback=False))
+            _coy_tier = _pretier_map.get(_coy, classify_company_tier(_real_employer_name(_coy), llm_fallback=False))
             _s_start = _parse_ym(_sorted_twd2[_j].get("start") or "")
             _s_end = _parse_ym(_sorted_twd2[_j].get("end") or "")
             _next_start = _parse_ym(_sorted_twd2[_j + 1].get("start") or "")
@@ -1141,8 +1211,9 @@ def _score_experience_section(
     best_tier = 5
     tier_map: dict[str, int] = {}
     for company in companies:
-        t = classify_company_tier(str(company or ""), llm_fallback=False)
-        tier_map[str(company)] = t
+        company_str = str(company or "")
+        t = classify_company_tier(_real_employer_name(company_str), llm_fallback=False)
+        tier_map[company_str] = t
         if t < best_tier:
             best_tier = t
     company_pts = tier_to_points(best_tier, max_points=6)
@@ -1302,12 +1373,8 @@ def _score_experience_section(
     if credibility:
         bd["_credibility_check"] = credibility  # metadata only, no score field
 
-    total_exp = sum(
-        v["score"] for k, v in bd.items()
-        if isinstance(v, dict) and "score" in v and k != "operating_model_tag"
-    )
     return {
-        "experience_score": round(_clamp(total_exp, 0, 40), 1),
+        "experience_score": _rescaled_section_score(bd, _EXP_ITEM_TARGET_MAX, 40),
         "breakdown": bd,
         "reject_flags": reject_flags,
     }
@@ -1585,13 +1652,8 @@ def _score_skills_section(
     for pkey, (pmax, pmsg) in _PANEL_PARAMS.items():
         bd[pkey] = _param(0, pmax, pmsg)
 
-    _PANEL_KEYS = set(_PANEL_PARAMS.keys())
-    base_total = sum(
-        v["score"] for k, v in bd.items()
-        if isinstance(v, dict) and "score" in v and k not in _PANEL_KEYS
-    )
     return {
-        "skills_score": round(_clamp(base_total, 0, 45), 1),
+        "skills_score": _rescaled_section_score(bd, _SKILLS_ITEM_TARGET_MAX, 29),
         "breakdown": bd,
     }
 
@@ -2281,6 +2343,31 @@ def compute_rubric_score(
     skills_result = _score_skills_section(evidence_map, experience, bert_priors, client_role_config, raw_data=raw_data)
     edu_result = _score_education_section(education)
 
+    # Institute pedigree is most informative when a candidate has little
+    # else to go on (fresh graduate); it should carry proportionally less
+    # weight once real, provable work history has accumulated and become
+    # the more reliable signal. Without this, a senior candidate's college
+    # gets the exact same flat weight as a fresh graduate's, letting
+    # pedigree alone outweigh genuinely stronger skill/experience evidence
+    # from a less-pedigreed candidate -- found empirically: a 9-YOE
+    # candidate's IIT-tier institute_tier score was outweighing another
+    # candidate's stronger, now-correctly-scaled skill depth. Full weight
+    # through 2 YOE, linearly tapering to 35% weight by 8+ YOE.
+    _total_yoe = _safe_float(experience.get("total_experience_years"), 0.0)
+    if _total_yoe <= 2:
+        _pedigree_factor = 1.0
+    elif _total_yoe >= 8:
+        _pedigree_factor = 0.35
+    else:
+        _pedigree_factor = 1.0 - (_total_yoe - 2) / 6.0 * 0.65
+    _inst_item = edu_result["breakdown"].get("institute_tier")
+    if isinstance(_inst_item, dict) and isinstance(_inst_item.get("score"), (int, float)) and _pedigree_factor < 1.0:
+        _inst_item["score"] = round(_inst_item["score"] * _pedigree_factor, 2)
+        _inst_item["reason"] += (
+            f" Pedigree weight attenuated to {_pedigree_factor:.0%} at {_total_yoe:.1f} YOE "
+            f"-- real work history now carries more signal than which institute."
+        )
+
     # ── Patch certifications into skills from education ────────────────────
     cert_list = education.get("certificates") or education.get("certifications") or []
     cert_count = len(cert_list)
@@ -2352,23 +2439,24 @@ def compute_rubric_score(
         patent_pts, 2.5, patent_reason, has_patents=has_patents, institute_tier=edu_tier
     )
 
-    # Recompute education score after patents patch
+    # Recompute education score after patents patch. linkedin_activity is
+    # recruiter-stage (always 0 at resume time) -- excluded the same way
+    # stakeholder_management/mentorship_signal are excluded from Experience,
+    # matching the "pending != 0" rule. No rescale needed here: the
+    # resume-achievable education items already sum to exactly the
+    # documented 15-pt target (10 core + 5 non-linkedin bonus).
     edu_core = sum(
         v["score"] for k, v in edu_result["breakdown"].items()
         if isinstance(v, dict) and "score" in v and k != "bonus"
     )
     edu_bonus = sum(
-        v["score"] for v in (edu_result["breakdown"].get("bonus") or {}).values()
-        if isinstance(v, dict) and "score" in v
+        v["score"] for k, v in (edu_result["breakdown"].get("bonus") or {}).items()
+        if isinstance(v, dict) and "score" in v and k != "linkedin_activity"
     )
     edu_result["education_score"] = round(_clamp(edu_core + edu_bonus, 0, 15), 1)
 
-    # ── Recompute skills total after patches (exclude panel params) ────────
-    skills_base = sum(
-        v["score"] for k, v in skills_result["breakdown"].items()
-        if isinstance(v, dict) and "score" in v and k not in _PANEL_SKILL_KEYS
-    )
-    skills_result["skills_score"] = round(_clamp(skills_base, 0, 45), 1)
+    # ── Recompute skills total after patches (rescaled to documented weights) ──
+    skills_result["skills_score"] = _rescaled_section_score(skills_result["breakdown"], _SKILLS_ITEM_TARGET_MAX, 29)
 
     # ── LLM judging pass for qualitative parameters ───────────────────────
     llm_judges = _llm_judge_rubric_params(
@@ -2379,22 +2467,10 @@ def compute_rubric_score(
     if llm_judges and isinstance(llm_judges, dict):
         _merge_llm_judges(llm_judges, exp_result["breakdown"], skills_result["breakdown"])
         llm_judged = True
-        # Recompute section totals after LLM adjustments
-        # Exclude recruiter/panel-pending params so their score=0 doesn't pollute.
-        # international_exposure excluded from this set (E16: now auto-scored from resume signal).
-        _recruiter_exp_excl = {"stakeholder_management", "mentorship_signal"}
-        exp_total = sum(
-            v["score"] for k, v in exp_result["breakdown"].items()
-            if isinstance(v, dict) and "score" in v
-            and k != "operating_model_tag"
-            and k not in _recruiter_exp_excl
-        )
-        exp_result["experience_score"] = round(_clamp(exp_total, 0, 40), 1)
-        skills_base = sum(
-            v["score"] for k, v in skills_result["breakdown"].items()
-            if isinstance(v, dict) and "score" in v and k not in _PANEL_SKILL_KEYS
-        )
-        skills_result["skills_score"] = round(_clamp(skills_base, 0, 45), 1)
+        # Recompute section totals after LLM adjustments, rescaled to each
+        # item's documented target weight (see _rescaled_section_score).
+        exp_result["experience_score"] = _rescaled_section_score(exp_result["breakdown"], _EXP_ITEM_TARGET_MAX, 40)
+        skills_result["skills_score"] = _rescaled_section_score(skills_result["breakdown"], _SKILLS_ITEM_TARGET_MAX, 29)
 
     total = round(
         _clamp(
@@ -2632,7 +2708,7 @@ def detect_red_flags(
     best_tier_rf = 5
     tier_seq: list[int] = []
     for c in companies:
-        t = classify_company_tier(str(c or ""), llm_fallback=False)
+        t = classify_company_tier(_real_employer_name(c), llm_fallback=False)
         tier_seq.append(t)
         if t < best_tier_rf:
             best_tier_rf = t
