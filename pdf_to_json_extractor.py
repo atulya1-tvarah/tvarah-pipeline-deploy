@@ -440,6 +440,19 @@ Rules:
 - skills per experience entry: list only tools/languages mentioned in that role's description.
 - education_level: BACHELOR for B.Tech/B.S./B.E., MASTER for M.S./M.Tech/MBA, PHD for PhD/Doctorate.
 - If a field is unknown use null for scalars, [] for arrays.
+- CRITICAL - company_name must be the candidate's actual EMPLOYER (the organization that hired/paid
+  them), never an internal project, account, initiative, product, or team name. IT-services/
+  consulting resumes very often list ONE employer with several indented sub-headings underneath for
+  different projects/accounts/initiatives (e.g. employer "Accenture" as the header, then "GenAI
+  Initiative", "Client Migration Program", "Data Platform Revamp" as sub-bullets each with their own
+  dates). Those sub-headings are NOT separate companies -- when you see this nested pattern, use the
+  single top-level employer's name as company_name for every one of those date ranges, and fold the
+  project/initiative name into role_description instead (e.g. "Worked on the GenAI Initiative
+  project..."). Only emit a different company_name when the resume text itself states a genuinely
+  different, real, named employer -- a distinct legal company/organization the candidate actually
+  worked for, not just a differently-named internal project under the same employer. If in doubt
+  (the name doesn't read like a real company and appears nested under an existing employer heading
+  with no clear "joined a new company" signal), treat it as a project, not a new employer.
 """
 
 
