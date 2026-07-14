@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
+from datetime import date
 
 from taxonomy import CANONICAL_SKILL_MAP
 from utils import dedupe_keep_order, flatten_text, month_diff, normalize_text, parse_date
@@ -285,8 +286,48 @@ def _career_trajectory_score(titles: list[str], role_complexity: list[int] | Non
     return title_score
 
 
+def _merge_same_company_tenures(items: list) -> list[int]:
+    """Merges consecutive same-company entries (internal promotions/role
+    changes) into one continuous tenure block before loyalty/stability
+    scoring. Without this, an internal promotion reads as several short
+    stints at "different companies" -- rubric_engine.py's E15 edge-case
+    already *detects* internal promotions and notes them as "not
+    instability" in the reason text, but that note never fed back into the
+    actual average-tenure number, so the score itself stayed penalized
+    regardless. Entries are sorted by start date first since resumes don't
+    always list roles in chronological order."""
+    dated = []
+    for item in items:
+        company = normalize_text(item.get("company") or item.get("organization"))
+        start = parse_date(item.get("start_date") or item.get("from"))
+        end = parse_date(item.get("end_date") or item.get("to"))
+        dated.append((start, end, company))
+    dated.sort(key=lambda t: t[0] or date.min)
+
+    merged: list[int] = []
+    current_company: str | None = None
+    current_start = None
+    current_end = None
+    for start, end, company in dated:
+        if company and company == current_company:
+            # Same employer as the chronologically-previous entry -- extend
+            # the running stint instead of starting a new one.
+            if end and (current_end is None or end > current_end):
+                current_end = end
+            continue
+        if current_company is not None:
+            merged.append(month_diff(current_start, current_end))
+        current_company = company
+        current_start = start
+        current_end = end
+    if current_company is not None:
+        merged.append(month_diff(current_start, current_end))
+    return merged
+
+
 def analyze_experience(resume_data):
     items = _items(resume_data)
+    merged_tenures = _merge_same_company_tenures(items)
     total_months = 0
     titles = []
     companies = []
@@ -383,8 +424,12 @@ def analyze_experience(resume_data):
     dominant_operating_model = operating_models[0] if operating_models else "HYBRID"
     relocation_signal = international or "remote" in flatten_text(resume_data).lower() or "relocation" in flatten_text(resume_data).lower()
     mobility = _location_bucket(locations, relocation_signal)
-    loyalty = _loyalty_bucket([months for months in tenures if months > 0])
-    stability = _compute_stability_score(tenures, titles)
+    # Loyalty/stability score off merged_tenures, not the raw per-role
+    # tenures above -- an internal promotion at the same employer must read
+    # as one continuous stint, not several short ones at "different
+    # companies" (see _merge_same_company_tenures).
+    loyalty = _loyalty_bucket([months for months in merged_tenures if months > 0])
+    stability = _compute_stability_score(merged_tenures, titles)
     trajectory = _career_trajectory_score(titles, complexity_by_role)
     # Build tenure_with_dates for rubric_engine career break detection
     tenure_with_dates = []
@@ -420,7 +465,7 @@ def analyze_experience(resume_data):
         "decision_maker": decision if years >= 6 else False,
         "fast_learner": fast,
         "stability_score": stability,
-        "tenures": tenures,
+        "tenures": merged_tenures,
         "career_trajectory_score": trajectory,
         "company_profiles": company_profiles[:8],
         "domain_tags": sorted(set(domain_tags)),
